@@ -418,7 +418,7 @@
 
 	<!-- DEBUG VISUALS -->
 
-	{#if showDebug}
+	{#if showDebug} 
 		<!-- Total Path -->
 		<T.Points>
 			<T.BufferGeometry>
