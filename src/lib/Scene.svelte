@@ -1,5 +1,5 @@
 <script>
-	import { T, useTask } from '@threlte/core';
+	import { T, useTask, useRenderer, useScene } from '@threlte/core';
 	import { OrbitControls, Gizmo } from '@threlte/extras';
 	import { Button, Pane, Slider, Checkbox, Folder, Stepper } from 'svelte-tweakpane-ui';
 	// import { Spring } from 'svelte/motion';
@@ -52,6 +52,22 @@
 	//  --- GENERATION ---
 
 	let isOrtho = $state(true);
+
+	//  --- VISIBILITY ---
+	const renderer = useRenderer();
+
+	//  --- EDITING ---
+	let isEditMode = $state(false);
+
+	$effect(() => {
+		isEditMode = location.hash === '#edit';
+	});
+
+	let resScale = $state(2); // for debugging, to show low resolution pipes
+
+	$effect(() => {
+		renderer.renderer.setSize(window.innerWidth / resScale, window.innerHeight / resScale, false);
+	});
 
 	// --- RUNTIME ---
 
@@ -380,6 +396,8 @@
 	generatePipes();
 </script>
 
+<svelte:window onhashchange={() => (isEditMode = location.hash === '#edit')} />
+
 <!-- CAMERA -->
 <T.PerspectiveCamera
 	makeDefault
@@ -418,7 +436,7 @@
 
 	<!-- DEBUG VISUALS -->
 
-	{#if showDebug} 
+	{#if showDebug}
 		<!-- Total Path -->
 		<T.Points>
 			<T.BufferGeometry>
@@ -458,24 +476,27 @@
 
 <!-- TWEAKS -->
 
-<!-- <Pane position="fixed">
-	<Folder title="Generate">
-		<Checkbox bind:value={isOrtho} label="Orthogonal" />
-		<Stepper bind:value={MAX_LENGTH_TOTAL} min={20} max={10000} step={20} label="Length" />
-		<Slider bind:value={STRAIGHT_BIAS} min={0} max={1} label="Straight Bias" />
-		<Button on:click={() => generatePipes()} label="Points" title="GENERATE" />
-	</Folder>
+{#if isEditMode}
+	<Pane position="fixed">
+		<Folder title="Generate">
+			<Checkbox bind:value={isOrtho} label="Orthogonal" />
+			<Stepper bind:value={MAX_LENGTH_TOTAL} min={20} max={10000} step={20} label="Length" />
+			<Slider bind:value={STRAIGHT_BIAS} min={0} max={1} label="Straight Bias" />
+			<Button on:click={() => generatePipes()} label="Points" title="GENERATE" />
+		</Folder>
 
-	<Folder title="Config">
-		<Checkbox bind:value={showPipes} label="Show Pipes" />
-		<Slider bind:value={BEND_RADIUS} min={0} max={10} label="Radius" />
-		<Slider bind:value={SPHERE_CHANCE} min={0} max={1} label="Orbs Chance" />
-	</Folder>
+		<Folder title="Config">
+			<Checkbox bind:value={showPipes} label="Show Pipes" />
+			<Slider bind:value={BEND_RADIUS} min={0} max={10} label="Radius" />
+			<Slider bind:value={SPHERE_CHANCE} min={0} max={1} label="Orbs Chance" />
+			<Slider bind:value={resScale} min={1} max={8} label="Resolution Factor" />
+		</Folder>
 
-	<Checkbox bind:value={showDebug} label="Debug" />
-	<Folder title="Animation">
-		<Slider bind:value={growSpeed} min={0} max={100} label="Speed" />
-		<Slider bind:value={progress} min={0} max={1} label="Progress" />
-		<Button on:click={togglePlay} title={isPlaying ? 'Pause' : 'Play'} />
-	</Folder>
-</Pane> -->
+		<Checkbox bind:value={showDebug} label="Debug" />
+		<Folder title="Animation">
+			<Slider bind:value={growSpeed} min={0} max={100} label="Speed" />
+			<Slider bind:value={progress} min={0} max={1} label="Progress" />
+			<Button on:click={togglePlay} title={isPlaying ? 'Pause' : 'Play'} />
+		</Folder>
+	</Pane>
+{/if}
